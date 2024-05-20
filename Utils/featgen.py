@@ -18,7 +18,8 @@ def feature_generation(row):
     
     hist, bin_edges = np.histogram(row, bins=10, density=True)
     features['entropy'] = entropy(hist)
-    fft_vals = np.abs(fft(row.to_numpy()))  
+
+    fft_vals = np.abs(fft(row.to_numpy())) 
     features['total_energy'] = np.sum(fft_vals**2)
 
     n = len(row)
@@ -34,13 +35,17 @@ def feature_generation(row):
     features['band_energy_2'] = band_energies[1]
     features['band_energy_3'] = band_energies[2]
     features['band_energy_4'] = band_energies[3]
-    
     peaks_indices = np.argsort(fft_vals)[-3:]
     peaks_values = fft_vals[peaks_indices]
-    
     features['peak_freq_1'] = peaks_values[0]
     features['peak_freq_2'] = peaks_values[1]
     features['peak_freq_3'] = peaks_values[2]
+    zero_crossings = np.where(np.diff(np.sign(row)))[0]
+    features['zero_crossing_rate'] = len(zero_crossings) / len(row)
+    features['quantile_25'] = np.quantile(row, 0.25)
+    features['quantile_50'] = np.quantile(row, 0.5)
+    features['quantile_75'] = np.quantile(row, 0.75)
+    
     return features
 
 def extract_features(df):
@@ -48,8 +53,6 @@ def extract_features(df):
     all_features = []
     for i, row in signal_data.iterrows():
         row_features = feature_generation(row)
-        for col in signal_data.columns:
-            row_features[col] = row[col]  
         all_features.append(row_features)
     features_df = pd.DataFrame(all_features)
     features_df['y'] = df['y'].values
@@ -57,4 +60,3 @@ def extract_features(df):
     features_df = features_df[cols]
     
     return features_df
-
