@@ -24,15 +24,26 @@ def plot_bio_signal(df, label):
     plt.legend()
     plt.show()
 
-
 def plot_time_series(df, title):
     signal_data = df.drop(columns='y', errors='ignore')
     combined_signal = signal_data.values.flatten()
+    time = np.arange(len(combined_signal)) / signal_data.shape[1]
     plt.figure(figsize=(14, 7))
-    plt.plot(range(len(combined_signal)), combined_signal, label='Combined Signal')
+    plt.plot(time, combined_signal, label='Combined Signal')
     plt.title(title)
     plt.xlabel('Time (s)')
     plt.ylabel('Millivolts')
     plt.legend()
     plt.show()
-
+    
+def plot_detrended_signal(df, label):
+    signal_data = df.drop(columns='y', errors='ignore')
+    combined_signal = signal_data.values.flatten()
+    time = np.arange(len(combined_signal)) / signal_data.shape[1]
+    plt.figure(figsize=(15, 5))
+    plt.plot(time, combined_signal, label='Detrended Combined Signal')
+    plt.title(f'Detrended Bio Signal for {label}')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Millivolts')
+    plt.legend()
+    plt.show()
