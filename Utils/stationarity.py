@@ -1,20 +1,19 @@
-from statsmodels.tsa.stattools import adfuller
+from statsmodels.tsa.stattools import kpss
 
-def check_stationarity(df):
-    results = {}
-    for column in df.columns:
-        if column != 'y':  
-            result = adfuller(df[column], autolag='AIC')
-            results[column] = {
-                'Test Statistic': result[0],
-                'p-value': result[1],
-                'Lags Used': result[2],
-                'Number of Observations Used': result[3],
-                'Critical Values': result[4]
-            }
-            if result[1] < 0.05:
-                results[column]['Stationarity'] = 'Stationary'
-            else:
-                results[column]['Stationarity'] = 'Non-stationary'
+def check_combined_stationarity_kpss(df):
+    signal_data = df.drop(columns='y', errors='ignore')
+    combined_signal = signal_data.values.flatten()
+    result = kpss(combined_signal, regression='c', nlags='auto')
+    results = {
+        'Test Statistic': result[0],
+        'p-value': result[1],
+        'Lags Used': result[2],
+        'Critical Values': result[3]
+    }
+    
+    if result[1] > 0.05:
+        results['Stationarity'] = 'Stationary'
+    else:
+        results['Stationarity'] = 'Non-stationary'
+    
     return results
-
