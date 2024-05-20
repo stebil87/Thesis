@@ -3,7 +3,7 @@ from statsmodels.tsa.stattools import adfuller
 def check_stationarity(df):
     results = {}
     for column in df.columns:
-        if column != 'y':  # Assuming 'y' is not a time series signal column
+        if column != 'y':  
             result = adfuller(df[column], autolag='AIC')
             results[column] = {
                 'Test Statistic': result[0],
