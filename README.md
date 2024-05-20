@@ -9,4 +9,4 @@ Advancing Precision Agriculture: Machine Learning-based Early Detection of Potat
 
 -featget
 
--collinearity
+-correlation
