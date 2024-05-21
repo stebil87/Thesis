@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import spectrogram
 import seaborn as sns
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 def plot_bio_signal(df, label):
     germination_row = df[df['y'] == 0].index[0]
@@ -46,4 +47,19 @@ def plot_detrended_signal(df, label):
     plt.xlabel('Time (s)')
     plt.ylabel('Millivolts')
     plt.legend()
+    plt.show()
+
+def downsample_signal(signal, factor):
+    return signal[::factor]
+
+def plot_acf_pacf(signal, title):
+    
+    plt.figure(figsize=(12, 6))
+    plt.subplot(121)
+    plot_acf(signal, ax=plt.gca(), lags=50) 
+    plt.title(f'ACF - {title}')
+    plt.subplot(122)
+    plot_pacf(signal, ax=plt.gca(), lags=50)  
+    plt.title(f'PACF - {title}')
+    plt.tight_layout()
     plt.show()
