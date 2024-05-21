@@ -6,8 +6,6 @@ from scipy.signal import find_peaks, hilbert
 
 def feature_generation(row):
     features = {}
-    
-    # Convert row to numpy array to handle calculations
     data = np.asarray(row)
     
     # Basic statistical features
