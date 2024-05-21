@@ -5,6 +5,8 @@ Advancing Precision Agriculture: Machine Learning-based Early Detection of Potat
 
 -nans ok
 
+- ACF e PACF
+
 -detrend
 
 -featget
