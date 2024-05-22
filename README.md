@@ -7,6 +7,10 @@ Advancing Precision Agriculture: Machine Learning-based Early Detection of Potat
 
 -ACF e PACF
 
+-normalization
+
+-anomaly detection
+
 -detrend
 
 -featget
