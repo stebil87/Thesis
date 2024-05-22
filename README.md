@@ -1,11 +1,15 @@
 # Thesis
 Advancing Precision Agriculture: Machine Learning-based Early Detection of Potato Sprouting via Electrophysiological Signals
 
--dataviz ok
+-dataviz
 
--nans ok
+-nans
 
 -ACF e PACF
+
+-normalization
+
+-anomaly detection
 
 -detrend
 
