@@ -64,7 +64,7 @@ def calculate_features(data, prefix=""):
 
     return features
 
-def feature_generation(row, window_size=200):
+def feature_generation(row, window_size=20):
     data = np.asarray(row)
     features = calculate_features(data, prefix="global_")
     
@@ -84,7 +84,7 @@ def feature_generation(row, window_size=200):
     
     return features
 
-def extract_features(df, window_size=200):
+def extract_features(df, window_size=20):
     signal_data = df.drop(columns='y', errors='ignore')
     all_features = []
     for _, row in signal_data.iterrows():
