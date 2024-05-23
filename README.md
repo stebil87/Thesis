@@ -13,6 +13,6 @@ Advancing Precision Agriculture: Machine Learning-based Early Detection of Potat
 
 -detrend
 
--featget
+-featgen with and w/o windowing
 
 -correlation
