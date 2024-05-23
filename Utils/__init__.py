@@ -7,3 +7,4 @@ from .correlation import *
 from .drop import *
 from .anomaly import *
 from .boxcox import *
+from Utils.scale import *
