@@ -11,4 +11,6 @@ Last push:
 
 - featgen only with raw data, no windowing
 
+- cleaned data after featgen (nans and inf in df12, replaced with previous OK value of the same feature)
+
 - computed correlations wrt y
