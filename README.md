@@ -1,18 +1,14 @@
 # Thesis
 Advancing Precision Agriculture: Machine Learning-based Early Detection of Potato Sprouting via Electrophysiological Signals
 
--dataviz
+Last push:
 
--nans
+- extended to all dataframes
 
--ACF e PACF
+- debugged anomaly detection
 
--normalization
+-  detrended wavelet linear and continous, plus keeped one dict with raw data
 
--anomaly detection
+- featgen only with raw data, no windowing
 
--detrend
-
--featgen with and w/o windowing
-
--correlation
+- computed correlations wrt y
