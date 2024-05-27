@@ -24,11 +24,17 @@ def plot_bio_signal(df, label):
     plt.ylabel('Millivolts')
     plt.legend()
     plt.show()
-
+    
 def plot_time_series(df, title):
-    signal_data = df.drop(columns='y', errors='ignore')
-    combined_signal = signal_data.values.flatten()
-    time = np.arange(len(combined_signal)) / signal_data.shape[1]
+    signal_data = df.drop(columns='y', errors='ignore')  # Remove the 'y' column
+    combined_signal = signal_data.values.flatten()  # Flatten all rows into a single continuous array
+    
+    # Calculate the total number of seconds
+    total_seconds = len(combined_signal)
+    
+    # Create a time array from 0 to total_seconds - 1
+    time = np.arange(total_seconds)
+
     plt.figure(figsize=(14, 7))
     plt.plot(time, combined_signal, label='Combined Signal')
     plt.title(title)

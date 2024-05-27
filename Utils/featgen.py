@@ -64,36 +64,17 @@ def calculate_features(data, prefix=""):
 
     return features
 
-def feature_generation(row, window_size=20):
-    data = np.asarray(row)
-    features = calculate_features(data, prefix="global_")
-    
-    windowed_features = []
-    for start in range(0, len(data), window_size):
-        end = start + window_size
-        if end > len(data):  
-            end = len(data)
-        window_data = data[start:end]
-        window_features = calculate_features(window_data, prefix=f"win_{start}_{end}_")
-        windowed_features.append(window_features)
-
-    
-    for window_feature in windowed_features:
-        for key, value in window_feature.items():
-            features[key] = value
-    
-    return features
-
-def extract_features(df, window_size=20):
+def extract_features(df):
     signal_data = df.drop(columns='y', errors='ignore')
     all_features = []
     for _, row in signal_data.iterrows():
-        row_features = feature_generation(row, window_size)
+        row_features = calculate_features(np.asarray(row), prefix="global_")
         all_features.append(row_features)
     features_df = pd.DataFrame(all_features)
     features_df['y'] = df['y'].values
     
     return features_df
+
 
 
 
