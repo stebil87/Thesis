@@ -1,12 +1,11 @@
 from sklearn.preprocessing import RobustScaler
 import pandas as pd
 
-def scale_features(df, target_column):
-  
-    X = df.drop(target_column, axis=1) 
-    y = df[target_column]              
+def scale_features(df, target='y'):
     scaler = RobustScaler()
+    X = df.drop(columns=[target], errors='ignore')
+    y = df[target]
     X_scaled = scaler.fit_transform(X)
-    df_scaled = pd.DataFrame(X_scaled, columns=X.columns)
-    df_scaled[target_column] = y 
+    df_scaled = pd.DataFrame(X_scaled, columns=X.columns, index=X.index)
+    df_scaled[target] = y
     return df_scaled

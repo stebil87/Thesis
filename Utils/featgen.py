@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from scipy.stats import skew, kurtosis, entropy
+from scipy.stats import skew, entropy
 from scipy.fftpack import fft
 from scipy.signal import find_peaks, hilbert
 
@@ -14,8 +14,6 @@ def calculate_features(data, prefix=""):
     features[prefix + 'max'] = np.max(data)
     features[prefix + 'range'] = np.max(data) - np.min(data)
     features[prefix + 'median'] = np.median(data)
-    features[prefix + 'skew'] = skew(data)
-    features[prefix + 'kurtosis'] = kurtosis(data)
     
     # Histogram entropy
     hist, _ = np.histogram(data, bins=10, density=True)
@@ -59,8 +57,6 @@ def calculate_features(data, prefix=""):
     features[prefix + 'envelope_std'] = np.std(envelope)
     features[prefix + 'envelope_max'] = np.max(envelope)
     features[prefix + 'envelope_min'] = np.min(envelope)
-    features[prefix + 'envelope_skew'] = skew(envelope)
-    features[prefix + 'envelope_kurtosis'] = kurtosis(envelope)
 
     return features
 
