@@ -5,6 +5,8 @@ from sklearn.metrics import mean_absolute_error
 from xgboost import XGBRegressor
 from lightgbm import LGBMRegressor
 from sklearn.ensemble import AdaBoostRegressor
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module='lightgbm')
 
 def create_hankel_matrix(X, n_rows=None):
     hankel_data = []
@@ -16,49 +18,50 @@ def create_hankel_matrix(X, n_rows=None):
         hankel_data.append(hankel_matrix.flatten())
     return pd.DataFrame(hankel_data).transpose()
 
-def perform_regression_and_cv(datasets, use_hankel=False):
+def perform_regression_and_cv(dictionaries, use_hankel=False):
     results = {}
-    for name, df in datasets.items():
-        print(f"Processing {name}...")
-        
-        X = df.drop('y', axis=1)
-        y = df['y']
-        
-        if use_hankel:
-            X = create_hankel_matrix(X)
-        
-        models = {
-            'XGBoost': XGBRegressor(),
-            'LightGBM': LGBMRegressor(),
-            'AdaBoost': AdaBoostRegressor()
-        }
-        
-        loo = LeaveOneOut()
-        
-        for model_name, model in models.items():
-            mae_scores = []
-            for train_index, test_index in loo.split(X):
-                X_train, X_test = X.iloc[train_index], X.iloc[test_index]
-                y_train, y_test = y.iloc[train_index], y.iloc[test_index]
-                
+    loo = LeaveOneOut()
+
+    for dict_name, datasets in dictionaries.items():
+        print(f"Processing dictionary: {dict_name}")
+        dataframes = list(datasets.values())
+        results[dict_name] = {}
+
+        for train_index, test_index in loo.split(dataframes):
+            train_dfs = [dataframes[i] for i in train_index]
+            test_df = dataframes[test_index[0]]
+
+            X_train = pd.concat([df.drop(columns='y', errors='ignore') for df in train_dfs])
+            y_train = pd.concat([df['y'] for df in train_dfs])
+            X_test = test_df.drop(columns='y', errors='ignore')
+            y_test = test_df['y']
+
+            if use_hankel:
+                X_train = create_hankel_matrix(X_train)
+                X_test = create_hankel_matrix(X_test)
+
+            models = {
+                'XGBoost': XGBRegressor(),
+                'LightGBM': LGBMRegressor(),
+                'AdaBoost': AdaBoostRegressor()
+            }
+
+            for model_name, model in models.items():
                 model.fit(X_train, y_train)
                 y_pred = model.predict(X_test)
-                mae_scores.append(mean_absolute_error(y_test, y_pred))
-            
-            avg_mae = np.mean(mae_scores)
-            if name not in results:
-                results[name] = {}
-            results[name][model_name] = avg_mae
-            
-            print(f"Model: {model_name}, MAE: {avg_mae:.4f}")
-    
+                mae = mean_absolute_error(y_test, y_pred)
+                if model_name not in results[dict_name]:
+                    results[dict_name][model_name] = []
+                results[dict_name][model_name].append(mae)
+
     return results
 
 def print_results(results, description):
     print(f"\n{description} Results:")
     for dict_name, dict_results in results.items():
         print(f"\nDictionary: {dict_name}")
-        for df_name, model_results in dict_results.items():
-            print(f"  DataFrame: {df_name}")
-            for model_name, mae in model_results.items():
-                print(f"    {model_name}: MAE = {mae:.4f}")
+        for model_name, maes in dict_results.items():
+            avg_mae = np.mean(maes)
+            print(f"  Model: {model_name}, MAE: {avg_mae:.4f}")
+
+

@@ -1,8 +1,8 @@
-from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
 
 def scale_features(df, target='y'):
-    scaler = RobustScaler()
+    scaler = StandardScaler()
     X = df.drop(columns=[target], errors='ignore')
     y = df[target]
     X_scaled = scaler.fit_transform(X)
