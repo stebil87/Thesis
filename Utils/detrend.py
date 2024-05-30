@@ -16,6 +16,7 @@ def detrend_signal_wavelet_cont(df, wavelet='db4', level=1):
     
     return detrended_df
 
+#discrete
 def detrend_signal_wavelet_linear(df, wavelet='db4', level=1):
     signal_data = df.drop(columns='y', errors='ignore')
     detrended_signals = []
