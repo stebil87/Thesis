@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 
 warnings.filterwarnings("ignore", category=UserWarning, module='lightgbm')
 
-# Function for Bayesian Optimization
 def optimize_xgb(X_train, y_train):
     param_distributions = {
         'n_estimators': Integer(50, 200),
@@ -74,3 +73,28 @@ def print_results(results, description):
         for model_name, maes in dict_results.items():
             avg_mae = np.mean(maes)
             print(f"  Model: {model_name}, MAE: {avg_mae:.4f}")
+
+def plot_box_plots(results):
+    for dict_name, dict_results in results.items():
+        plt.figure(figsize=(10, 6))
+        data = [maes for model_name, maes in dict_results.items()]
+        plt.boxplot(data, labels=dict_results.keys())
+        plt.title(f'Box Plot of MAE for {dict_name}')
+        plt.xlabel('Model')
+        plt.ylabel('Mean Absolute Error')
+        plt.show()
+
+def plot_predictions_vs_actuals(predictions):
+    for dict_name, dict_preds in predictions.items():
+        plt.figure(figsize=(10, 6))
+        for model_name, preds in dict_preds.items():
+            y_test, y_pred = preds[0]
+            plt.plot(y_test, label=f'Actual {model_name}')
+            plt.plot(y_pred, label=f'Predicted {model_name}')
+        plt.title(f'{dict_name} - Actual vs Predicted')
+        plt.xlabel('Sample')
+        plt.ylabel('Value')
+        plt.legend()
+        plt.show()
+
+
