@@ -137,9 +137,3 @@ def plot_predictions_vs_actuals(predictions):
         plt.ylabel('Value')
         plt.legend()
         plt.show()
-
-# Example usage
-results, predictions = mc_dropout(scaled_dictionaries)
-print_results(results, "MAE")
-plot_box_plots(results)
-plot_predictions_vs_actuals(predictions)
