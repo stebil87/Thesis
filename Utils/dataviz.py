@@ -26,14 +26,11 @@ def plot_bio_signal(df, label):
     plt.show()
     
 def plot_time_series(df, title):
-    signal_data = df.drop(columns='y', errors='ignore')  # Remove the 'y' column
-    combined_signal = signal_data.values.flatten()  # Flatten all rows into a single continuous array
-    
-    # Calculate the total number of seconds
-    total_seconds = len(combined_signal)
-    
-    # Create a time array from 0 to total_seconds - 1
-    time = np.arange(total_seconds)
+    signal_data = df.drop(columns='y', errors='ignore')  
+    combined_signal = signal_data.values.flatten() 
+    num_samples_per_row = signal_data.shape[1]
+    total_seconds = num_samples_per_row * len(df)
+    time = np.arange(total_seconds) / num_samples_per_row
 
     plt.figure(figsize=(14, 7))
     plt.plot(time, combined_signal, label='Combined Signal')
@@ -42,7 +39,7 @@ def plot_time_series(df, title):
     plt.ylabel('Millivolts')
     plt.legend()
     plt.show()
-    
+
 def plot_detrended_signal(df, label):
     signal_data = df.drop(columns='y', errors='ignore')
     combined_signal = signal_data.values.flatten()
