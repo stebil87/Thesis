@@ -1,84 +1,129 @@
 import pandas as pd
 import numpy as np
-from sklearn.model_selection import LeaveOneOut
-from sklearn.metrics import mean_absolute_error
 from xgboost import XGBRegressor
-from lightgbm import LGBMRegressor
 from sklearn.ensemble import AdaBoostRegressor
-import warnings
+from lightgbm import LGBMRegressor
+from sklearn.metrics import mean_absolute_error
 import matplotlib.pyplot as plt
 
-warnings.filterwarnings("ignore", category=UserWarning, module='lightgbm') 
+def regression(dictionaries):
+    models = {
+        'XGBoost': XGBRegressor(objective='reg:squarederror'),
+        'AdaBoost': AdaBoostRegressor(),
+        'LightGBM': LGBMRegressor()
+    }
+    results = {key: {model: {'y_true': [], 'y_pred': [], 'mae': []} for model in models} for key in dictionaries}  
+    
+    for dict_name, df_dict in dictionaries.items():
+        print(f"Processing {dict_name}...")
+        if len(df_dict) < 2:
+            print(f"Not enough data frames in {dict_name} for leave-one-out cross-validation.")
+            continue
 
-def perform_regression_and_cv(dictionaries):
-    results = {} # Dictionary to store the results
-    predictions = {} # Dictionary to store the predictions
-    loo = LeaveOneOut() # Leave-One-Out cross-validation
+        for test_df_name, test_df in df_dict.items():
+            train_dfs = [df for name, df in df_dict.items() if name != test_df_name]
+            train_df = pd.concat(train_dfs)
 
-    for dict_name, datasets in dictionaries.items(): # Iterate over each dictionary
-        print(f"Processing dictionary: {dict_name}")
-        dataframes = list(datasets.values()) # List of dataframes in the current dictionary
-        results[dict_name] = {} # Initialize results for the current dictionary
-        predictions[dict_name] = {'y_test': [], 'y_pred': []} # Initialize predictions for the current dictionary
+            X_train = train_df.drop(columns='y')
+            y_train = train_df['y']
+            X_test = test_df.drop(columns='y')
+            y_test = test_df['y']
 
-        for train_index, test_index in loo.split(dataframes): # Perform Leave-One-Out CV
-            train_dfs = [dataframes[i] for i in train_index] # Training dataframes
-            test_df = dataframes[test_index[0]] # Testing dataframe
+            for model_name, model in models.items():
+                model.fit(X_train, y_train)
+                predictions = model.predict(X_test)
+                results[dict_name][model_name]['y_true'].append(y_test.values)
+                results[dict_name][model_name]['y_pred'].append(predictions)
+                
+                mae = mean_absolute_error(y_test, predictions)
+                results[dict_name][model_name]['mae'].append(mae)
 
-            X_train = pd.concat([df.drop(columns='y', errors='ignore') for df in train_dfs]) # Combine training features
-            y_train = pd.concat([df['y'] for df in train_dfs]) # Combine training targets
-            X_test = test_df.drop(columns='y', errors='ignore') # Testing features
-            y_test = test_df['y'] # Testing target
+    for dict_name, model_data in results.items():
+        for model_name, data in model_data.items():
+            avg_mae = np.mean(data['mae'])
+            print(f"Average MAE for {model_name} in {dict_name}: {avg_mae:.4f}")
 
-            models = { # Dictionary of models to be evaluated
-                'XGBoost': XGBRegressor(),
-                'LightGBM': LGBMRegressor(),
-                'AdaBoost': AdaBoostRegressor()
-            }
+            # Plotting predictions vs. ground truth
+            plt.figure(figsize=(8, 6))
+            all_y_true = np.concatenate(data['y_true'])
+            all_y_pred = np.concatenate(data['y_pred'])
+            plt.plot(all_y_true, label='Ground Truth', color='blue')
+            plt.plot(all_y_pred, label='Predictions', linestyle='dashed', color='green')
+            plt.title(f'{model_name} Predictions vs Ground Truth for {dict_name}')
+            plt.xlabel('Index')
+            plt.ylabel('Values')
+            plt.legend()
+            plt.grid(True)
+            plt.tight_layout()
+            plt.show()
 
-            for model_name, model in models.items(): # Iterate over each model
-                model.fit(X_train, y_train) # Fit the model on the training data
-                y_pred = model.predict(X_test) # Predict on the testing data
-                mae = mean_absolute_error(y_test, y_pred) # Calculate mean absolute error
+            # Plotting box plot of prediction intervals
+            plt.figure(figsize=(8, 6))
+            plt.boxplot(data['y_pred'], labels=['XGBoost', 'AdaBoost', 'LightGBM'])
+            plt.title(f'Prediction Intervals for {dict_name}')
+            plt.xlabel('Models')
+            plt.ylabel('Predicted Values')
+            plt.grid(True)
+            plt.tight_layout()
+            plt.show()
 
-                if model_name not in results[dict_name]: # Initialize model results if not already
-                    results[dict_name][model_name] = []
-                results[dict_name][model_name].append(mae) # Append the MAE for the current model
 
-                predictions[dict_name]['y_test'].append(y_test.values) # Append the actual values
-                predictions[dict_name]['y_pred'].append(y_pred) # Append the predicted values
 
-    return results, predictions # Return the results and predictions
+"""
+import pandas as pd
+import numpy as np
+from xgboost import XGBRegressor
+from sklearn.ensemble import AdaBoostRegressor
+from lightgbm import LGBMRegressor
+from sklearn.metrics import mean_absolute_error
+import matplotlib.pyplot as plt
 
-def print_results(results, description):
-    print(f"\n{description} Results:") # Print the description
-    for dict_name, dict_results in results.items(): # Iterate over each dictionary in results
-        print(f"\nDictionary: {dict_name}")
-        for model_name, maes in dict_results.items(): # Iterate over each model in the dictionary
-            avg_mae = np.mean(maes) # Calculate the average MAE
-            print(f"  Model: {model_name}, MAE: {avg_mae:.4f}") # Print the average MAE for the model
+def regression(dictionaries):
+    models = {
+        'XGBoost': XGBRegressor(objective='reg:squarederror'),
+        'AdaBoost': AdaBoostRegressor(),
+        'LightGBM': LGBMRegressor()
+    }
+    results = {key: {model: {'y_true': [], 'y_pred': []} for model in models} for key in dictionaries}  
+    
+    for dict_name, df_dict in dictionaries.items():
+        print(f"Processing {dict_name}...")
+        if len(df_dict) < 2:
+            print(f"Not enough data frames in {dict_name} for leave-one-out cross-validation.")
+            continue
 
-def plot_box_plots(results):
-    for dict_name, dict_results in results.items(): # Iterate over each dictionary in results
-        plt.figure(figsize=(10, 6)) # Create a new figure
-        data = [maes for model_name, maes in dict_results.items()] # Extract MAE data for each model
-        plt.boxplot(data, labels=dict_results.keys()) # Create a box plot
-        plt.title(f'Box Plot of MAE for {dict_name}') # Set the title
-        plt.xlabel('Model') # Set the x-axis label
-        plt.ylabel('Mean Absolute Error') # Set the y-axis label
-        plt.show() # Display the plot
+        for test_df_name, test_df in df_dict.items():
+            train_dfs = [df for name, df in df_dict.items() if name != test_df_name]
+            train_df = pd.concat(train_dfs)
 
-def plot_predictions_vs_actuals(predictions):
-    for dict_name, dict_preds in predictions.items(): # Iterate over each dictionary in predictions
-        y_test_avg = np.mean(predictions[dict_name]['y_test'], axis=0) # Calculate the average actual values
-        y_pred_avg = np.mean(predictions[dict_name]['y_pred'], axis=0) # Calculate the average predicted values
+            X_train = train_df.drop(columns='y')
+            y_train = train_df['y']
+            X_test = test_df.drop(columns='y')
+            y_test = test_df['y']
 
-        plt.figure(figsize=(10, 6)) # Create a new figure
-        plt.plot(y_test_avg, label='Actual') # Plot the average actual values
-        plt.plot(y_pred_avg, label='Predicted') # Plot the average predicted values
-        plt.title(f'{dict_name} - Actual vs Predicted') # Set the title
-        plt.xlabel('Sample') # Set the x-axis label
-        plt.ylabel('Value') # Set the y-axis label
-        plt.legend() # Display the legend
-        plt.show() # Display the plot
+            for model_name, model in models.items():
+                model.fit(X_train, y_train)
+                predictions = model.predict(X_test)
+                results[dict_name][model_name]['y_true'].append(y_test.values)
+                results[dict_name][model_name]['y_pred'].append(predictions)
+                
+                mae = mean_absolute_error(y_test, predictions)
+                results[dict_name][model_name]['mae'] = mae
 
+    for dict_name, model_data in results.items():
+        for model_name, data in model_data.items():
+            print(f"Average MAE for {model_name} in {dict_name}: {data['mae']:.4f}")
+
+            plt.figure(figsize=(8, 6))
+            all_y_true = np.concatenate(data['y_true'])
+            all_y_pred = np.concatenate(data['y_pred'])
+            plt.plot(all_y_true, label='Ground Truth', color='blue')
+            plt.plot(all_y_pred, label='Predictions', linestyle='dashed', color='green')
+            plt.title(f'{model_name} Predictions vs Ground Truth for {dict_name}')
+            plt.xlabel('Index')
+            plt.ylabel('Values')
+            plt.legend()
+            plt.grid(True)
+            plt.tight_layout()
+            plt.show()
+            """

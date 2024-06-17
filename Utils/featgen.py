@@ -1,17 +1,20 @@
-import numpy as np
 import pandas as pd
-from scipy.stats import skew, kurtosis, entropy
+import numpy as np
+from scipy.stats import skew, kurtosis
 from scipy.fftpack import fft
 from scipy.signal import find_peaks, hilbert
 
+# Feature extraction functions
 def calculate_features(data, prefix=""):
     features = {}
-    
+
     def cap_extreme_values(value, lower_bound=-1e10, upper_bound=1e10):
+        if isinstance(value, complex):  # Ensure value is real
+            value = np.real(value)
         if np.isinf(value) or np.isnan(value):
             return 0
         return max(min(value, upper_bound), lower_bound)
-    
+
     def safe_stat(func, data, default=0):
         try:
             return func(data)
@@ -28,10 +31,11 @@ def calculate_features(data, prefix=""):
     features[prefix + 'median'] = cap_extreme_values(safe_stat(np.median, data))
     features[prefix + 'skew'] = cap_extreme_values(safe_stat(skew, data))
     features[prefix + 'kurtosis'] = cap_extreme_values(safe_stat(kurtosis, data))
-    
+
     # FFT and energy features
-    fft_vals = np.abs(fft(data))
-    freqs = np.fft.fftfreq(len(data), d=1)
+    data_real = np.real(data)  # Ensure data is real for FFT
+    fft_vals = np.abs(fft(data_real))
+    freqs = np.fft.fftfreq(len(data_real), d=1)
     features[prefix + 'total_energy'] = cap_extreme_values(np.sum(fft_vals**2))
     low_freq_power = np.sum(fft_vals[freqs < 0.1]**2)
     high_freq_power = np.sum(fft_vals[freqs >= 0.1]**2)
@@ -42,29 +46,29 @@ def calculate_features(data, prefix=""):
     features[prefix + 'peak_freq_1'] = cap_extreme_values(sorted_fft_vals[-1])
     features[prefix + 'peak_freq_2'] = cap_extreme_values(sorted_fft_vals[-2])
     features[prefix + 'peak_freq_3'] = cap_extreme_values(sorted_fft_vals[-3])
-    zero_crossings = np.where(np.diff(np.sign(data)))[0]
-    features[prefix + 'zero_crossing_rate'] = cap_extreme_values(len(zero_crossings) / len(data))
+    zero_crossings = np.where(np.diff(np.sign(data_real)))[0]
+    features[prefix + 'zero_crossing_rate'] = cap_extreme_values(len(zero_crossings) / len(data_real))
 
     # Mean-crossing rate
-    mean_level = np.mean(data)
-    mean_crossings = np.where(np.diff(np.sign(data - mean_level)))[0]
-    features[prefix + 'mean_crossing_rate'] = cap_extreme_values(len(mean_crossings) / len(data))
+    mean_level = np.mean(data_real)
+    mean_crossings = np.where(np.diff(np.sign(data_real - mean_level)))[0]
+    features[prefix + 'mean_crossing_rate'] = cap_extreme_values(len(mean_crossings) / len(data_real))
 
     # Local extrema: maxima and minima
-    peaks, _ = find_peaks(data)
-    troughs, _ = find_peaks(-data)
-    features[prefix + 'local_maxima_rate'] = cap_extreme_values(len(peaks) / len(data))
-    features[prefix + 'local_minima_rate'] = cap_extreme_values(len(troughs) / len(data))
+    peaks, _ = find_peaks(data_real)
+    troughs, _ = find_peaks(-data_real)
+    features[prefix + 'local_maxima_rate'] = cap_extreme_values(len(peaks) / len(data_real))
+    features[prefix + 'local_minima_rate'] = cap_extreme_values(len(troughs) / len(data_real))
 
     # Quantiles and interquantile ranges
-    features[prefix + 'quantile_25'] = cap_extreme_values(np.quantile(data, 0.25))
-    features[prefix + 'quantile_50'] = cap_extreme_values(np.quantile(data, 0.5))
-    features[prefix + 'quantile_75'] = cap_extreme_values(np.quantile(data, 0.75))
+    features[prefix + 'quantile_25'] = cap_extreme_values(np.quantile(data_real, 0.25))
+    features[prefix + 'quantile_50'] = cap_extreme_values(np.quantile(data_real, 0.5))
+    features[prefix + 'quantile_75'] = cap_extreme_values(np.quantile(data_real, 0.75))
     features[prefix + 'iqr_25_75'] = cap_extreme_values(features[prefix + 'quantile_75'] - features[prefix + 'quantile_25'])
-    features[prefix + 'iqr_10_90'] = cap_extreme_values(np.quantile(data, 0.90) - np.quantile(data, 0.10))
+    features[prefix + 'iqr_10_90'] = cap_extreme_values(np.quantile(data_real, 0.90) - np.quantile(data_real, 0.10))
 
     # Signal envelope using Hilbert transform
-    analytical_signal = hilbert(data)
+    analytical_signal = hilbert(data_real)
     envelope = np.abs(analytical_signal)
     features[prefix + 'envelope_mean'] = cap_extreme_values(np.mean(envelope))
     features[prefix + 'envelope_std'] = cap_extreme_values(np.std(envelope))
@@ -83,6 +87,27 @@ def extract_features(df):
         all_features.append(row_features)
     features_df = pd.DataFrame(all_features)
     features_df['y'] = df['y'].values
-    
     return features_df
+
+def featgen(dictionaries):
+    extracted_features_dict = {}
+    for dict_name, dict_df in dictionaries.items():
+        if isinstance(dict_df, dict):  # Handling continuous wavelet dictionaries with scales
+            extracted_features_dict[dict_name] = {}
+            for scale, df in dict_df.items():
+                extracted_features_dict[dict_name][scale] = extract_features(df)
+        else:
+            extracted_features_dict[dict_name] = extract_features(dict_df)
+    return extracted_features_dict
+
+# Applying feature extraction to each dictionary
+def combined(extracted_features_dict):
+    combined_dfs = {}
+    for dict_name, features_dict in extracted_features_dict.items():
+        if isinstance(features_dict, dict):
+            combined_df = pd.concat(features_dict.values(), axis=1)
+        else:
+            combined_df = features_dict
+        combined_dfs[dict_name] = combined_df
+    return combined_dfs
 
