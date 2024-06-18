@@ -3,9 +3,4 @@ Advancing Precision Agriculture: Machine Learning-based Early Detection of Potat
 
 Last push:
 
-- debugged allover
-
-- changed scaler to be more robust aginst outliers
-
-- models debugged
-
+- overall update

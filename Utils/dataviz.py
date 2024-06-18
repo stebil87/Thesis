@@ -77,36 +77,38 @@ def plot_results(results):
         ax.set_ylabel('MAE')
         plt.show()
 
-def plot_trends(predictions):
-    for dict_name, dict_preds in predictions.items():
-        fig, axs = plt.subplots(len(dict_preds), 1, figsize=(10, 6 * len(dict_preds)))
-        fig.suptitle(f'Prediction Trends for {dict_name}', fontsize=16)
+
+
+def create_boxplots(individual_maes):
+    for dict_name, model_results in individual_maes.items():
+        plt.figure(figsize=(10, 6))
+        data = []
+        labels = []
         
-        if len(dict_preds) == 1:
-            axs = [axs]
+        for model_name, maes in model_results.items():
+            data.append(maes)
+            labels.append(model_name)
         
-        for ax, (model_name, preds) in zip(axs, dict_preds.items()):
-            sample_size = len(preds)
-            num_samples_to_plot = min(sample_size, 10) 
-
-            for y_test, y_pred in preds[:num_samples_to_plot]:
-                ax.plot(y_test, label='True', alpha=0.6)
-                ax.plot(y_pred, label='Predicted', alpha=0.6)
-
-            y_true_all = np.concatenate([y_test for y_test, y_pred in preds])
-            y_pred_all = np.concatenate([y_pred for y_test, y_pred in preds])
-            
-            y_pred_mean = np.mean(y_pred_all, axis=0)
-            y_pred_std = np.std(y_pred_all, axis=0)
-            y_pred_upper = y_pred_mean + y_pred_std
-            y_pred_lower = y_pred_mean - y_pred_std
-            
-            ax.plot(y_pred_mean, label='Mean Prediction', color='black')
-            ax.fill_between(range(len(y_pred_mean)), y_pred_lower, y_pred_upper, color='gray', alpha=0.3)
-
-            ax.set_title(f'Model: {model_name}')
-            ax.set_xlabel('Sample')
-            ax.set_ylabel('Value')
-            ax.legend()
-        plt.tight_layout()
+        plt.boxplot(data, notch=True, patch_artist=True, labels=labels,
+                    boxprops=dict(facecolor='lightblue', color='blue'),
+                    whiskerprops=dict(color='red'),
+                    medianprops=dict(color='green'),
+                    capprops=dict(color='purple'))
+        plt.title(f'Boxplot of MAEs for {dict_name}')
+        plt.xlabel('Model')
+        plt.ylabel('MAE')
         plt.show()
+        
+
+def plot_lines(individual_maes):
+    for dict_name, model_results in individual_maes.items():
+        plt.figure(figsize=(10, 6))
+        for model_name, maes in model_results.items():
+            plt.plot(maes, marker='o', linestyle='-', label=model_name)
+        plt.title(f'Individual MAEs for {dict_name}')
+        plt.xlabel('Fold')
+        plt.ylabel('MAE')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+

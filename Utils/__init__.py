@@ -3,14 +3,14 @@ from .dataviz import *
 from .stationarity import *
 from .detrend import *
 from .featgen import *
-from .correlation import *
+from .mean_day import *
 from .drop import *
 from .anomaly import *
 from .normal import *
 from Utils.scale import *
 from Utils.filter import *
 from Utils.modelling import *
-from Utils.modelling_BO import *
 from Utils.windowing import *
 from Utils.normal import *
 from Utils.filter import *
+from Utils.mean_day import *

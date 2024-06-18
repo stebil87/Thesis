@@ -4,12 +4,11 @@ from scipy.stats import skew, kurtosis
 from scipy.fftpack import fft
 from scipy.signal import find_peaks, hilbert
 
-# Feature extraction functions
 def calculate_features(data, prefix=""):
     features = {}
 
     def cap_extreme_values(value, lower_bound=-1e10, upper_bound=1e10):
-        if isinstance(value, complex):  # Ensure value is real
+        if isinstance(value, complex):
             value = np.real(value)
         if np.isinf(value) or np.isnan(value):
             return 0
@@ -33,7 +32,7 @@ def calculate_features(data, prefix=""):
     features[prefix + 'kurtosis'] = cap_extreme_values(safe_stat(kurtosis, data))
 
     # FFT and energy features
-    data_real = np.real(data)  # Ensure data is real for FFT
+    data_real = np.real(data) 
     fft_vals = np.abs(fft(data_real))
     freqs = np.fft.fftfreq(len(data_real), d=1)
     features[prefix + 'total_energy'] = cap_extreme_values(np.sum(fft_vals**2))
@@ -92,7 +91,7 @@ def extract_features(df):
 def featgen(dictionaries):
     extracted_features_dict = {}
     for dict_name, dict_df in dictionaries.items():
-        if isinstance(dict_df, dict):  # Handling continuous wavelet dictionaries with scales
+        if isinstance(dict_df, dict):  
             extracted_features_dict[dict_name] = {}
             for scale, df in dict_df.items():
                 extracted_features_dict[dict_name][scale] = extract_features(df)
@@ -100,7 +99,6 @@ def featgen(dictionaries):
             extracted_features_dict[dict_name] = extract_features(dict_df)
     return extracted_features_dict
 
-# Applying feature extraction to each dictionary
 def combined(extracted_features_dict):
     combined_dfs = {}
     for dict_name, features_dict in extracted_features_dict.items():

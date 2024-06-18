@@ -1,58 +1,48 @@
-"""
 import pandas as pd
 import numpy as np
+from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import LeaveOneOut
 from xgboost import XGBRegressor
 from sklearn.ensemble import AdaBoostRegressor
-from lightgbm import LGBMRegressor
-from sklearn.metrics import mean_absolute_error
-import matplotlib.pyplot as plt
+import lightgbm as lgb
 
-def regression(dictionaries):
-    models = {
-        'XGBoost': XGBRegressor(objective='reg:squarederror'),
-        'AdaBoost': AdaBoostRegressor(),
-        'LightGBM': LGBMRegressor()
-    }
-    results = {key: {model: {'y_true': [], 'y_pred': []} for model in models} for key in dictionaries}  
+def regression(models, dictionaries):
+    results = {}
+    individual_maes = {}  
     
     for dict_name, df_dict in dictionaries.items():
-        print(f"Processing {dict_name}...")
-        if len(df_dict) < 2:
-            print(f"Not enough data frames in {dict_name} for leave-one-out cross-validation.")
-            continue
+        print(f"Evaluating {dict_name}...")
+        results[dict_name] = {}
+        individual_maes[dict_name] = {}
+        
+        for model_name, model in models.items():
+            print(f"  Using model {model_name}...")
+            loo = LeaveOneOut()
+            maes = []
 
-        for test_df_name, test_df in df_dict.items():
-            train_dfs = [df for name, df in df_dict.items() if name != test_df_name]
-            train_df = pd.concat(train_dfs)
+            for test_df_name in df_dict.keys():
+                test_df = df_dict[test_df_name]
+                train_dfs = [df for name, df in df_dict.items() if name != test_df_name]
+                train_df = pd.concat(train_dfs)
 
-            X_train = train_df.drop(columns='y')
-            y_train = train_df['y']
-            X_test = test_df.drop(columns='y')
-            y_test = test_df['y']
+                X_train, y_train = train_df.drop(columns=['y']), train_df['y']
+                X_test, y_test = test_df.drop(columns=['y']), test_df['y']
 
-            for model_name, model in models.items():
                 model.fit(X_train, y_train)
-                predictions = model.predict(X_test)
-                results[dict_name][model_name]['y_true'].append(y_test.values)
-                results[dict_name][model_name]['y_pred'].append(predictions)
+                y_pred = model.predict(X_test)
                 
-                mae = mean_absolute_error(y_test, predictions)
-                results[dict_name][model_name]['mae'] = mae
+                mae = mean_absolute_error(y_test, y_pred)
+                maes.append(mae)
 
-    for dict_name, model_data in results.items():
-        for model_name, data in model_data.items():
-            print(f"Average MAE for {model_name} in {dict_name}: {data['mae']:.4f}")
+            results[dict_name][model_name] = np.mean(maes)
+            individual_maes[dict_name][model_name] = maes
+            print(f"    Average MAE: {np.mean(maes):.4f}")
+    
+    return results, individual_maes
 
-            plt.figure(figsize=(8, 6))
-            all_y_true = np.concatenate(data['y_true'])
-            all_y_pred = np.concatenate(data['y_pred'])
-            plt.plot(all_y_true, label='Ground Truth', color='blue')
-            plt.plot(all_y_pred, label='Predictions', linestyle='dashed', color='green')
-            plt.title(f'{model_name} Predictions vs Ground Truth for {dict_name}')
-            plt.xlabel('Index')
-            plt.ylabel('Values')
-            plt.legend()
-            plt.grid(True)
-            plt.tight_layout()
-            plt.show()
-"""
+
+def pretty_print(results):
+    for dict_name, model_results in results.items():
+        print(f"\nAverage MAEs for {dict_name}:")
+        for model_name, avg_mae in model_results.items():
+            print(f"  {model_name}: Average MAE = {avg_mae:.4f}")
