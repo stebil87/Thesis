@@ -7,33 +7,46 @@ from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 
 def sprouting_500(df, label):
-    germination_row = df[df['y'] == 0].index[0]
-    prev_values = df.iloc[germination_row, -501:-1].values
-    next_values = df.iloc[germination_row + 1, 0:500].values
+    row = df[df['y'] == 0].index[0]
+    prev_values = df.iloc[row, -501:-1].values
+    next_values = df.iloc[row + 1, 0:500].values
     combined_signal = np.concatenate((prev_values, next_values))
 
     plt.figure(figsize=(15, 5))
-    plt.plot(range(len(combined_signal)), combined_signal, label='Combined Signal')
-    plt.title(f'Bio Signal around Sprouting in {label}')
+    plt.plot(range(len(combined_signal)), combined_signal, label='Signal')
+    plt.title(f'Signal around Sprouting in {label}')
     plt.xlabel('Time (s)')
     plt.ylabel('Millivolts')
     plt.legend()
     plt.show()
     
 def sprouting_100(df, label):
-    germination_row = df[df['y'] == 0].index[0]
-    prev_values = df.iloc[germination_row, -101:-1].values
-    next_values = df.iloc[germination_row + 1, 0:100].values
+    row = df[df['y'] == 0].index[0]
+    prev_values = df.iloc[row, -101:-1].values
+    next_values = df.iloc[row + 1, 0:100].values
     combined_signal = np.concatenate((prev_values, next_values))
 
     plt.figure(figsize=(15, 5))
-    plt.plot(range(len(combined_signal)), combined_signal, label='Combined Signal')
-    plt.title(f'Bio Signal around Sprouting in {label}')
+    plt.plot(range(len(combined_signal)), combined_signal, label='Signal')
+    plt.title(f'Signal around Sprouting in {label}')
     plt.xlabel('Time (s)')
     plt.ylabel('Millivolts')
     plt.legend()
     plt.show()   
+    
+def sprouting_1000(df, label):
+    row = df[df['y'] == 0].index[0]
+    prev_values = df.iloc[row, -2001:-1].values
+    next_values = df.iloc[row + 1, 0:2000].values
+    combined_signal = np.concatenate((prev_values, next_values))
 
+    plt.figure(figsize=(15, 5))
+    plt.plot(range(len(combined_signal)), combined_signal, label='Signal')
+    plt.title(f'Signal around Sprouting in {label}')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Millivolts')
+    plt.legend()
+    plt.show()   
 
 def plot_time_series(df, title):
     signal_data = df.drop(columns='y', errors='ignore')  
