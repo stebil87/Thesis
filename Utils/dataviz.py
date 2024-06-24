@@ -5,37 +5,46 @@ from scipy.signal import spectrogram
 import seaborn as sns
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
-def plot_bio_signal(df, label):
+
+def sprouting_500(df, label):
     germination_row = df[df['y'] == 0].index[0]
-    if germination_row < 500 or germination_row + 500 >= len(df):
-        print(f"Not enough data to plot 500 steps before and after germination for {label}")
-        return
-    
-    start = germination_row - 500
-    end = germination_row + 500
-    signal_data = df.iloc[start:end+1].drop(columns='y')
-    combined_signal = signal_data.values.flatten()
-    germination_position = 500
+    prev_values = df.iloc[germination_row, -501:-1].values
+    next_values = df.iloc[germination_row + 1, 0:500].values
+    combined_signal = np.concatenate((prev_values, next_values))
+
     plt.figure(figsize=(15, 5))
     plt.plot(range(len(combined_signal)), combined_signal, label='Combined Signal')
-    plt.axvline(x=germination_position * signal_data.shape[1], color='r', linestyle='--', label='Sprouting')
     plt.title(f'Bio Signal around Sprouting in {label}')
     plt.xlabel('Time (s)')
     plt.ylabel('Millivolts')
     plt.legend()
     plt.show()
     
+def sprouting_100(df, label):
+    germination_row = df[df['y'] == 0].index[0]
+    prev_values = df.iloc[germination_row, -101:-1].values
+    next_values = df.iloc[germination_row + 1, 0:100].values
+    combined_signal = np.concatenate((prev_values, next_values))
+
+    plt.figure(figsize=(15, 5))
+    plt.plot(range(len(combined_signal)), combined_signal, label='Combined Signal')
+    plt.title(f'Bio Signal around Sprouting in {label}')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Millivolts')
+    plt.legend()
+    plt.show()   
+
+
 def plot_time_series(df, title):
     signal_data = df.drop(columns='y', errors='ignore')  
-    combined_signal = signal_data.values.flatten() 
-    num_samples_per_row = signal_data.shape[1]
-    total_seconds = num_samples_per_row * len(df)
-    time = np.arange(total_seconds) / num_samples_per_row
+    combined_signal = signal_data.values.flatten()
+    total_samples = len(combined_signal)
+    time = np.arange(total_samples)
 
     plt.figure(figsize=(14, 7))
-    plt.plot(time, combined_signal, label='Combined Signal')
+    plt.plot(time, combined_signal, label='Signal')
     plt.title(title)
-    plt.xlabel('Time (s)')
+    plt.xlabel('Sample Number')
     plt.ylabel('Millivolts')
     plt.legend()
     plt.show()
@@ -112,9 +121,6 @@ def plot_lines(individual_maes):
         plt.grid(True)
         plt.show()
 
-
-import pandas as pd
-import matplotlib.pyplot as plt
 
 def comparison(df_reference, dfs_to_compare, labels):
     plt.figure(figsize=(15, 15))
