@@ -22,7 +22,7 @@ def scale_features(df, target_column='y'):
         
         return scaled_df
     else:
-        print(f"Skipping scaling because it is empty or does not contain numeric features.")
+        print(f"No numeric features")
         return df
 
 def scale(dictionaries, target_column='y'):

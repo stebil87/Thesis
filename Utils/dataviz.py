@@ -112,3 +112,38 @@ def plot_lines(individual_maes):
         plt.grid(True)
         plt.show()
 
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+def comparison(df_reference, dfs_to_compare, labels):
+    plt.figure(figsize=(15, 15))
+    min_val = float('inf')
+    max_val = float('-inf')
+    
+    all_signals = [df_reference] + dfs_to_compare
+    for df in all_signals:
+        signal_data = df.drop(columns=['y']).values.flatten()
+        min_val = min(min_val, signal_data.min())
+        max_val = max(max_val, signal_data.max())
+    
+    reference_signal = df_reference.drop(columns=['y']).values.flatten()
+    normalized_reference_signal = (reference_signal - min_val) / (max_val - min_val)
+    time_vector = range(len(normalized_reference_signal))
+    
+    for i, (df, label) in enumerate(zip(dfs_to_compare, labels), start=1):
+        plt.subplot(3, 1, i)
+        compare_signal = df.drop(columns=['y']).values.flatten()
+        normalized_compare_signal = (compare_signal - min_val) / (max_val - min_val)
+        compare_time_vector = range(len(normalized_compare_signal))
+        
+        plt.plot(time_vector, normalized_reference_signal, label='df9')
+        plt.plot(compare_time_vector, normalized_compare_signal, label=label)
+        
+        plt.title(f'Signal for df9 and {label}')
+        plt.xlabel('Time (seconds)')
+        plt.ylabel('Mvs')
+        plt.legend()
+    
+    plt.tight_layout()
+    plt.show()
