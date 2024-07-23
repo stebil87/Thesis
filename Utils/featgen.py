@@ -80,13 +80,14 @@ def feat_extraction(dataframes):
         return features
 
     def extract_features(df):
-        signal_data = df.drop(columns='y', errors='ignore')
+        signal_data = df.drop(columns=['y', 'timestamp'], errors='ignore') 
         all_features = []
         for _, row in signal_data.iterrows():
             row_features = calculate_features(np.asarray(row), prefix="global_")
             all_features.append(row_features)
         features_df = pd.DataFrame(all_features)
         features_df['y'] = df['y'].values
+        features_df['timestamp'] = df['timestamp'].values  
         return features_df
 
     def featgen(dictionaries):
@@ -114,6 +115,5 @@ def feat_extraction(dataframes):
     combined_features = combined(extracted_features_dict)
 
     return combined_features
-
 
 
