@@ -4,8 +4,6 @@ import pywt
 
 def cwt(dataframes, wavelet='morl', scales=None, sampling_period=1):
 
-    if scales is None:
-        scales = np.arange(1, 128)
 
     transformed_dataframes = {}
 

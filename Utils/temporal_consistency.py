@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import timedelta
+import ipywidgets as widgets
+from ipywidgets import interact
 
 def analyze_gap(df_dict):
     results = {}
@@ -48,7 +50,7 @@ def analyze_gap(df_dict):
         print()
         
         if gaps_list:
-            # Plot histogram and boxplot for the current dataframe
+
             plt.figure(figsize=(12, 5))
             plt.subplot(121)
             plt.hist(gaps_list, bins=30, edgecolor='black')
@@ -62,17 +64,23 @@ def analyze_gap(df_dict):
             plt.ylabel('Gap Length (seconds)')
             plt.tight_layout()
             plt.show()
-            
-            # Plot the distribution of gaps over the time series
-            plt.figure(figsize=(12, 5))
-            plt.plot(df['timestamp'], df['mV'], label='Original Data', marker='o', linestyle='', markersize=2)
-            for gap_pos in gaps_positions:
-                plt.axvline(x=gap_pos, color='r', linestyle='--', linewidth=0.5)
-            plt.title(f'{key} - Gaps in Time Series')
-            plt.xlabel('Timestamp')
-            plt.ylabel('mV')
-            plt.legend()
-            plt.show()
-        
-    return results
+                        
+            def plot_time_series(start, end):
+                            start_index = int(start * len(df))
+                            end_index = int(end * len(df))
+                            plt.figure(figsize=(12, 5))
+                            plt.plot(df['timestamp'][start_index:end_index], df['mV'][start_index:end_index], label='Original Data', marker='o', linestyle='', markersize=2)
+                            for gap_pos in gaps_positions:
+                                if df['timestamp'][start_index] <= gap_pos <= df['timestamp'][end_index-1]:
+                                    plt.axvline(x=gap_pos, color='r', linestyle='--', linewidth=0.5)
+                            plt.title(f'{key} - Gaps in Time Series')
+                            plt.xlabel('Timestamp')
+                            plt.ylabel('mV')
+                            plt.legend()
+                            plt.show()
 
+            interact(plot_time_series, 
+                                start=widgets.FloatSlider(value=0, min=0, max=0.99, step=0.01, description='Start'), 
+                                end=widgets.FloatSlider(value=1, min=0.01, max=1, step=0.01, description='End'))
+                    
+    return results
