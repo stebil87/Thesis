@@ -32,7 +32,7 @@ def feat_extraction(dataframes):
         features[prefix + 'skew'] = cap_extreme_values(safe_stat(skew, data))
         features[prefix + 'kurtosis'] = cap_extreme_values(safe_stat(kurtosis, data))
 
-        # FFT and energy features
+        # FFT and energy features (not to be used after wavelet)
         data_real = np.real(data)
         fft_vals = np.abs(fft(data_real))
         freqs = np.fft.fftfreq(len(data_real), d=1)
@@ -67,7 +67,7 @@ def feat_extraction(dataframes):
         features[prefix + 'iqr_25_75'] = cap_extreme_values(features[prefix + 'quantile_75'] - features[prefix + 'quantile_25'])
         features[prefix + 'iqr_10_90'] = cap_extreme_values(np.quantile(data_real, 0.90) - np.quantile(data_real, 0.10))
 
-        # Signal envelope using Hilbert transform
+        # Signal envelope using Hilbert transform (not to be used after wavelets)
         analytical_signal = hilbert(data_real)
         envelope = np.abs(analytical_signal)
         features[prefix + 'envelope_mean'] = cap_extreme_values(np.mean(envelope))
