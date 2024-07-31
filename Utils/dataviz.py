@@ -166,3 +166,19 @@ def comparison(df_reference, dfs_to_compare, labels):
     
     plt.tight_layout()
     plt.show()
+    
+
+def plot_signal_and_target(dataframes):
+    for df_name, df in dataframes.items():
+        df = df.sort_values(by='timestamp')
+        
+        plt.figure(figsize=(10, 6))
+        plt.plot(df.index, df['mV'], label='mV Signal', color='blue')
+        
+        plt.plot(df.index, df['y'], label='y Target', color='red', linestyle='--')
+        
+        plt.title(f'Signal and Target for {df_name}')
+        plt.xlabel('Index')
+        plt.ylabel('Value')
+        plt.legend()
+        plt.show()

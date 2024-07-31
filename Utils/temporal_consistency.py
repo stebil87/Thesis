@@ -29,20 +29,20 @@ def analyze_gap(df_dict):
                 gaps_list.append(gap_seconds)
                 gaps_positions.append(timestamps[i-1])
         
-        total_rows = (df['timestamp'].max() - df['timestamp'].min()).total_seconds() + 1
-        gap_percentage = (total_gap_seconds / total_rows) * 100
+        total_seconds = (df['timestamp'].max() - df['timestamp'].min()).total_seconds()
+        gap_percentage = (total_gap_seconds / total_seconds) * 100
         avg_gap_length = total_gap_seconds / num_gaps if num_gaps > 0 else 0
 
         results[key] = {
             'num_gaps': num_gaps,
             'total_gap_seconds': total_gap_seconds,
-            'total_rows': total_rows,
+            'total_seconds': total_seconds,
             'gap_percentage': gap_percentage,
             'avg_gap_length': avg_gap_length
         }
         
         print(f"Finished processing dataframe: {key}")
-        print(f"  Total rows: {total_rows}")
+        print(f"  Total seconds: {total_seconds}")
         print(f"  Total gap seconds: {total_gap_seconds}")
         print(f"  Gap percentage: {gap_percentage:.2f}%")
         print(f"  Average gap length: {avg_gap_length:.2f} seconds")
@@ -66,21 +66,22 @@ def analyze_gap(df_dict):
             plt.show()
                         
             def plot_time_series(start, end):
-                            start_index = int(start * len(df))
-                            end_index = int(end * len(df))
-                            plt.figure(figsize=(12, 5))
-                            plt.plot(df['timestamp'][start_index:end_index], df['mV'][start_index:end_index], label='Original Data', marker='o', linestyle='', markersize=2)
-                            for gap_pos in gaps_positions:
-                                if df['timestamp'][start_index] <= gap_pos <= df['timestamp'][end_index-1]:
-                                    plt.axvline(x=gap_pos, color='r', linestyle='--', linewidth=0.5)
-                            plt.title(f'{key} - Gaps in Time Series')
-                            plt.xlabel('Timestamp')
-                            plt.ylabel('mV')
-                            plt.legend()
-                            plt.show()
+                start_timestamp = df['timestamp'].min() + timedelta(seconds=start)
+                end_timestamp = df['timestamp'].min() + timedelta(seconds=end)
+                mask = (df['timestamp'] >= start_timestamp) & (df['timestamp'] <= end_timestamp)
+                plt.figure(figsize=(12, 5))
+                plt.plot(df['timestamp'][mask], df['mV'][mask], label='Original Data', marker='o', linestyle='', markersize=2)
+                for gap_pos in gaps_positions:
+                    if start_timestamp <= gap_pos <= end_timestamp:
+                        plt.axvline(x=gap_pos, color='r', linestyle='--', linewidth=0.5)
+                plt.title(f'{key} - Gaps in Time Series')
+                plt.xlabel('Timestamp')
+                plt.ylabel('mV')
+                plt.legend()
+                plt.show()
 
             interact(plot_time_series, 
-                                start=widgets.FloatSlider(value=0, min=0, max=0.99, step=0.01, description='Start'), 
-                                end=widgets.FloatSlider(value=1, min=0.01, max=1, step=0.01, description='End'))
+                     start=widgets.FloatSlider(value=0, min=0, max=total_seconds, step=1, description='Start (s)'),
+                     end=widgets.FloatSlider(value=total_seconds, min=1, max=total_seconds, step=1, description='End (s)'))
                     
     return results
