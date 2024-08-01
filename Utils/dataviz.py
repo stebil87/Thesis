@@ -182,3 +182,25 @@ def plot_signal_and_target(dataframes):
         plt.ylabel('Value')
         plt.legend()
         plt.show()
+        
+
+def plot_delta_days_percentiles(delta_days):
+    for dict_name, model_deltas in delta_days.items():
+        plt.figure(figsize=(10, 6))
+        for model_name, deltas in model_deltas.items():
+            if not isinstance(deltas, list):
+                print(f"Skipping {model_name} in {dict_name} because it does not contain a list of deltas.")
+                continue
+            deltas = np.array(deltas)
+            percentiles = np.linspace(0, 100, len(deltas))
+            sorted_deltas = np.sort(deltas)
+
+            plt.plot(percentiles, sorted_deltas, label=model_name)
+
+        plt.xlabel('Percentile')
+        plt.ylabel('Delta Days')
+        plt.title(f'Error Distribution Percentiles for {dict_name}')
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+        

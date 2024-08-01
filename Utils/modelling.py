@@ -96,10 +96,6 @@ def regression(models, dictionaries, sprouting_days):
 
         print(f"Trained models for {dict_name}: {trained_models[dict_name].keys()}")
 
-    for dict_name, model_deltas in delta_days.items():  # Calculate average delta days
-        for model_name, deltas in model_deltas.items():
-            delta_days[dict_name][model_name] = np.mean(deltas)
-
     return results, individual_maes, individual_predictions, delta_days, trained_models  # Return results
 
 def pretty_print(results, delta_days):
@@ -109,5 +105,10 @@ def pretty_print(results, delta_days):
             print(f"  {model_name}: Average MAE = {avg_mae:.4f}")
         
         print(f"\nAverage Delta Days for {dict_name}:")  # Print average delta days
-        for model_name, avg_delta in delta_days.get(dict_name, {}).items():
-            print(f"  {model_name}: Average Delta Days = {avg_delta:.4f}")
+        for model_name, deltas in delta_days.get(dict_name, {}).items():
+            if isinstance(deltas, list) and len(deltas) > 0:
+                avg_delta = np.mean(deltas)
+                print(f"  {model_name}: Average Delta Days = {avg_delta:.4f}")
+            else:
+                print(f"  {model_name}: No delta days data available")
+
